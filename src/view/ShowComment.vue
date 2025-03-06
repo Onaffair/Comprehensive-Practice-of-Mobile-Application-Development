@@ -43,6 +43,17 @@ const {itemData} = apiGetItemById(props.id,itemRefreshCount)
 const computedTitle = computed(() =>{
     return itemData?.value?.title ?? " "
 })
+
+//评论展示
+const commentShow = computed(() =>{
+    let allComment = comments.value
+    if (allComment !== null){
+        let res = organizeComments(allComment)
+        return res
+    }
+    return null
+})
+
 const changePopStatus = () =>{
     showPop.value = !showPop.value
     if (showPop.value){
@@ -74,6 +85,56 @@ const commitDeleteComment = async (item) =>{
         onOk = () => deleteComment(item)
     showDialog({title,content,onCancel,onOk})
 }
+
+
+function organizeComments(allComments) {
+    // 辅助函数：从hint中提取被引用的内容
+    const getQuotedContent = (hint) => {
+        if (!hint.startsWith('引用:')) return null;
+        return hint.split('@')[0].substring(3).trim(); // 提取"引用:"后的内容
+    };
+
+    // 创建内容到评论的映射（假设内容唯一）
+    const contentMap = new Map();
+    allComments.forEach(comment => contentMap.set(comment.content, comment));
+
+    // 查找根父级评论（一级评论）
+    const findRootParent = (comment) => {
+        let current = comment;
+        while (current.hint !== '') {
+            const quotedContent = getQuotedContent(current.hint);
+            if (!quotedContent || !contentMap.has(quotedContent)) break;
+            current = contentMap.get(quotedContent);
+        }
+        return current.hint === '' ? current : null;
+    };
+
+    // 初始化结果结构
+    const resultMap = new Map();
+
+    // 处理一级评论
+    allComments.forEach(comment => {
+        if (comment.hint === '') {
+            resultMap.set(comment.id, {
+                firstComment: comment,
+                secondComment: []
+            });
+        }
+    });
+
+    // 处理二级评论
+    allComments.forEach(comment => {
+        if (comment.hint !== '') {
+            const rootParent = findRootParent(comment);
+            if (rootParent && resultMap.has(rootParent.id)) {
+                resultMap.get(rootParent.id).secondComment.push(comment);
+            }
+        }
+    });
+
+    return Array.from(resultMap.values());
+}
+
 onMounted( async () =>{
     refreshRun()
     itemRefreshCount.value++
@@ -90,7 +151,7 @@ onMounted( async () =>{
             align="center"
             fill
         >
-            <MyCard v-model="itemData"/>
+            <MyCard v-bind="itemData"/>
         </nut-space>
     </div>
     <div v-if="error">
@@ -108,32 +169,59 @@ onMounted( async () =>{
         />
     </div>
     <div class="main-body">
+<!--        一级评论-->
         <a-comment
             align="right"
-            v-for="item in comments"
-            :author="item.owner.name"
-            :avatar="imageBaseUrl+item.owner.avatar"
-            :datetime="formatDateTime(item.create_time)"
-            :key="item.id"
+            v-for="item in commentShow"
+            :author="item.firstComment.owner.name"
+            :avatar="imageBaseUrl+item.firstComment.owner.avatar"
+            :datetime="formatDateTime(item.firstComment.create_time)"
+            :key="item.firstComment.item_id"
         >
             <template #actions>
                 <div>
-                     <span @click="setReplyHint(item)">
+                     <span @click="setReplyHint(item.firstComment)">
                         <IconMessage />引用
                     </span>
-                    <span v-if="item.onwer_id===uuid" @click="commitDeleteComment(item)">
+                    <span v-if="item.firstComment.onwer_id===uuid" @click="commitDeleteComment(item.firstComment)">
                         <IconDelete/>删除
                     </span>
                 </div>
             </template>
-           <template #content>
-               <div v-if="item.hint" style="color:grey">
-                   {{item.hint}}
+            <template #content>
+               <div v-if="item.firstComment.hint" style="color:grey">
+                   {{item.firstComment.hint}}
                </div>
                <div>
-                   {{item.content}}
+                   {{item.firstComment.content}}
                </div>
            </template>
+<!--            二级评论-->
+            <a-comment
+                align="right"
+                v-for="subItem in item.secondComment"
+                :author="subItem.owner.name"
+                :avatar="imageBaseUrl+subItem.owner.avatar"
+                :datetime="formatDateTime(subItem.create_time)"
+                :key="subItem.item_id"
+            >
+                <template #actions>
+                        <span @click="setReplyHint(subItem)">
+                            <IconMessage />引用
+                        </span>
+                    <span v-if="subItem.onwer_id===uuid" @click="commitDeleteComment(subItem)">
+                            <IconDelete/>删除
+                        </span>
+                </template>
+                <template #content>
+                    <div v-if="subItem.hint" style="color:grey">
+                        {{subItem.hint}}
+                    </div>
+                    <div>
+                        {{subItem.content}}
+                    </div>
+                </template>
+            </a-comment>
         </a-comment>
         <a-comment
             align="right"

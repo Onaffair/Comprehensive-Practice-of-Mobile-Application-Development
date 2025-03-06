@@ -54,7 +54,6 @@ watchEffect(() =>{
                 type:'image',
                 name:imgSrc.value
             }
-            console.log(defaultFileList)
         }
     }else{
         defaultFileList.shift()

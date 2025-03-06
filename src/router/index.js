@@ -52,6 +52,14 @@ const routes = [
         }
     },
     {
+        path: '/userArticle',
+        name: 'userArticle',
+        component: () => import('../view/UserArticle.vue'),
+        props(route){
+            return route.query
+        }
+    },
+    {
         path:'/test',
         name:'test',
         component:() => import('../view/test.vue')
@@ -60,7 +68,6 @@ const routes = [
 const router = createRouter({
     history: createWebHashHistory(),
     scrollBehavior(to, from, savedPosition) {
-        console.log('router','savedPosition',savedPosition)
         if (savedPosition) {
             return savedPosition
         } else {

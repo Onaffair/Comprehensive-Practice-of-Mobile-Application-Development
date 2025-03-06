@@ -29,6 +29,8 @@ const useUserStore = defineStore('userStore',{
         userDetail:{},
         username:"",
         password:"",
+        activeTab:0,
+        star:[],
     }),
     getters:{
         getUser:(state) => state.user,
@@ -36,6 +38,8 @@ const useUserStore = defineStore('userStore',{
         getIsLogin:(state) => state.isLogin,
         getDecodePwd:(state) => decryptText(state.password),
         getUserDetail:(state) => state.userDetail,
+        getActiveTab:(state) => state.activeTab,
+        getStar:(state) => state.star,
     },
     actions:{
         setUser(user){
@@ -57,6 +61,12 @@ const useUserStore = defineStore('userStore',{
             this.userDetail.uuid = userDetail.uuid??''
             this.userDetail.nickname = userDetail.name??''
             this.userDetail.avatar = userDetail.avatar??''
+        },
+        setActiveTab(activeTab){
+            this.activeTab = activeTab
+        },
+        setStar(star){
+            this.star = star
         },
         quit(){
             this.setLoginState(false)

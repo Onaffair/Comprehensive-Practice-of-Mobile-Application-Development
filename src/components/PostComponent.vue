@@ -3,7 +3,7 @@
 import {reactive} from "vue";
 import {apiDeleteImageById, apiDeleteImageByPath, apiPostItemDetail} from "../util/apiUtils.js";
 import ImageUpLoader from "./ImageUpLoader.vue";
-import {imageBaseUrl} from "../store/basic-data.js";
+import {IconCaretUp,IconCaretDown} from "@arco-design/web-vue/es/icon/index.js";
 
 const itemId = defineModel('itemId')
 const formData = defineModel('formData')
@@ -41,6 +41,28 @@ const submitContent =async () =>{
     console.log(submitContent.name,'id',id)
     emits('onSubmit',id)
 }
+
+const swapUp = (currentItem) =>{
+
+    let itemOfLast = imgContents.value.find(item => item.order ===currentItem.order - 1)
+
+    let tmpOrder = itemOfLast.order
+    itemOfLast.order = currentItem.order
+    currentItem.order = tmpOrder
+
+    imgContents.value.sort((a, b) => a.order - b.order);
+}
+const swapDown = (currentItem) =>{
+    let itemOfNext = imgContents.value.find(item => item.order ===currentItem.order + 1)
+
+    let tmpOrder = itemOfNext.order
+    itemOfNext.order = currentItem.order
+    currentItem.order = tmpOrder
+
+    imgContents.value.sort((a, b) => a.order - b.order);
+}
+
+
 </script>
 
 <template>
@@ -71,7 +93,16 @@ const submitContent =async () =>{
             <nut-swipe
                 v-for="item in imgContents"
                 :key="item.order"
-                :name="item.order">
+                :name="item.order"
+            >
+                <a-button
+                    type="primary"
+                    v-if="item.order !== 0"
+                    @click="swapUp(item)"
+                >
+                    <icon-caret-up />
+                </a-button>
+
                 <nut-textarea
                     v-model="item.img_content"
                     :rows="3"
@@ -83,6 +114,16 @@ const submitContent =async () =>{
                     v-model:img-src="item.url"
                     @on-success="res => onImgContentSuccess(item,res)"
                 />
+
+                <a-button
+                    type="primary"
+                    v-if="item.order !== imgContents.length-1"
+                    @click="swapDown(item)"
+                >
+                    <icon-caret-down />
+                </a-button>
+
+                <a-divider/>
                 <template #right>
                     <nut-button
                         shape="square"

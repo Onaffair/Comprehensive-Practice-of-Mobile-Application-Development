@@ -30,7 +30,6 @@ const imgContents = ref([
     })
 ])
 const replaceView = (id) =>{
-    console.log(replaceView.name,'id',id)
     router.push({name:'showArticle',query:{id:id}})
 }
 

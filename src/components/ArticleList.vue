@@ -6,6 +6,7 @@ import {showDialog} from "@nutui/nutui";
 import {formatDateTime} from "../util/formatUtils.js";
 import router from "../router/index.js";
 import {imageBaseUrl} from "../store/basic-data.js";
+import useUserStore from "../store/UserStore.js";
 
 const props = defineProps({
     items:{
@@ -25,13 +26,14 @@ const props = defineProps({
                     name:"",
                     avatar:""
                 },
-                comment_count:0
+                comment_count:0,
+                owner_id:"",
             }),
         ]
     }
 })
-console.log(props.items)
 const emits = defineEmits(['onRefresh'])
+const userStore = useUserStore()
 
 const dealDelete = async (itemId) =>{
     console.log('dealDelete',itemId)
@@ -78,7 +80,7 @@ const  getTitleMeta = (item)=>{
                                     </span>
                                 </nut-col>
                                 <nut-col :span="8">
-                                    <span @click="confirmDelete(item)">
+                                    <span @click="confirmDelete(item)" v-if="item.owner_id === userStore.getUserDetail.uuid">
                                         <IconDelete/>
                                     </span>
                                 </nut-col>

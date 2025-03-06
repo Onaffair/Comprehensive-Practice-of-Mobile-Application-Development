@@ -3,10 +3,16 @@ import {
     IconThumbUp,
     IconMessage,
     IconMore,
+    IconThumbUpFill
 } from "@arco-design/web-vue/es/icon/index.js";
 import {computed, onBeforeMount} from "vue";
 import {imageBaseUrl} from "../store/basic-data.js";
 import {formatDateTime} from "../util/formatUtils.js";
+import router from "../router/index.js";
+import useUserStore from "../store/UserStore.js";
+
+
+const userStore = useUserStore()
 
 const props = defineProps({
     src:String,
@@ -28,13 +34,15 @@ const props = defineProps({
                 avatar:""
             }
         }
-    }
+    },
+    owner_id:String,
 })
 const emit = defineEmits([
     'onClickStar',
     'onClickComment',
     'onClickMoreActions',
     'onClickItem',
+    'onCLickUnStar',
 ])
 
 const modify_time = computed(() => formatDateTime(props.modify_time,true))
@@ -51,6 +59,9 @@ const onClickMore = () =>{
 const onClickItem = () =>{
     emit('onClickItem',props.id)
 }
+const onClickUnStar = () =>{
+    emit('onCLickUnStar',props.id)
+}
 const avatarAlter = computed(() =>props.owner?.name ? props.owner.name : '')
 
 const avatarSrc = computed(() => imageBaseUrl+props.owner.avatar)
@@ -66,11 +77,22 @@ onBeforeMount(() =>{
     <div>
         <a-card :style="{width:'96vw'}">
             <template #actions v-if="props.showMessage">
-                <span class="icon-hover" @click="onClickStar">
-                    <IconThumbUp/>{{props.star}}
+                <span class="icon-hover"
+                      v-if="userStore.getStar.find(item => item.article_id === props.id)"
+                      @click="onClickUnStar"
+                >
+                    <IconThumbUpFill/>
+                    {{props.star}}
                 </span>
-                <span class="icon-hover">
-                    <IconMessage @click="onClickMessage"/>{{props.comment_count}}
+                <span class="icon-hover"
+                    v-else
+                    @click="onClickStar"
+                >
+                    <IconThumbUp/>
+                    {{props.star}}
+                </span>
+                <span class="icon-hover" @click="onClickMessage" >
+                    <IconMessage />{{props.comment_count}}
                 </span>
                 <span class="icon-hover" @click="onClickMore">
                     <IconMore/>
@@ -86,9 +108,14 @@ onBeforeMount(() =>{
                     />
                 </div>
             </template>
-            <a-card-meta :title="props.title" :description="props.owner.name">
+            <a-card-meta :title="props.title">
+                <template #description>
+                    <div @click="router.push({name:'userArticle',query:{id:props.owner_id,name:props.owner.name}})">
+                        {{props.owner.name}}
+                    </div>
+                </template>
                 <template #avatar>
-                    <a-avatar :size="24" :style="{marginRight:'8px'}">
+                    <a-avatar :size="24" :style="{marginRight:'8px'}" @click="router.push({name:'userArticle',query:{id:props.owner_id,name:props.owner.name}})">
                         <img
                             :src="avatarSrc" :alt="avatarAlter"
                         />

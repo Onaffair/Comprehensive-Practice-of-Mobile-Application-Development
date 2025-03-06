@@ -1,7 +1,9 @@
 import {_axios} from "./index.js";
 import {alertFail, showFail, showSuccess} from "./showMessages.js";
 import {ref, toValue, watch, watchEffect} from "vue";
+import useUserStore from "../store/UserStore.js";
 
+const userStore = useUserStore()
 const apiDeleteImageByPath = async (path) =>{
     console.log(apiDeleteImageByPath.name,path)
 
@@ -157,7 +159,6 @@ const apiGetItemById =  (itemId,refreshCount = ref(0)) =>{
         _axios.get('/items/'+itemId)
             .then(res =>{
                 if (res?.data){
-                    console.log('res',res.data)
                     itemData.value = res.data
                     console.log(apiGetItemById.name,'itemData',itemData)
                 }
@@ -243,9 +244,35 @@ const apiPostComment = async (itemId,params) =>{
 const apiAddItemStar =async (itemId) =>{
     try {
         let res = await _axios.post('/items/put/addstar/'+itemId)
+
+        await apiGetStarByUserId()
+
         return Promise.resolve(res?.data)
     }catch (e){
         alertFail(apiAddItemStar.name,e?.message)
+    }
+}
+
+const apiRemoveItemStar = async (itemId) =>{
+    try{
+        let res = await _axios.post('items/put/decreasestar/'+itemId)
+
+        await apiGetStarByUserId()
+
+        return Promise.resolve(res?.data)
+    }catch (e){
+        alertFail(apiRemoveItemStar.name,e?.message)
+    }
+}
+
+const apiGetStarByUserId = async () =>{
+    try {
+        let res = await _axios.get('/items/allStaredItem/')
+
+        userStore.setStar(res?.data)
+        return Promise.resolve(res?.data)
+    }catch (e){
+        alertFail(apiGetStarByUserId.name,e?.message)
     }
 }
 
@@ -290,7 +317,7 @@ const apiGetMyComments = (counter = ref(1)) =>{
 }
 const apiPostItemDetail = async (itemIdRef ,titleForm, imgContents) =>{
 
-    console.log(titleForm)
+    console.log("TitleForm: ",titleForm)
 
     let itemId = itemIdRef.value
     if (itemId === 0){
@@ -327,4 +354,6 @@ export {
     apiGetMyComments,
     apiGetAllItemByUserId,
     apiPostItemDetail,
+    apiRemoveItemStar,
+    apiGetStarByUserId,
 }

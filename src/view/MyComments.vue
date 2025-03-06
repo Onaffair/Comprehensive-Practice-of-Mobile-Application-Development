@@ -1,6 +1,6 @@
 <script setup>
 import {IconDelete,IconBook} from "@arco-design/web-vue/es/icon/index.js";
-import {onActivated, ref} from "vue";
+import {computed, onActivated, ref, watch} from "vue";
 import {apiDeleteCommentById, apiGetMyComments} from "../util/apiUtils.js";
 import useUserStore from "../store/UserStore.js";
 import {storeToRefs} from "pinia";
@@ -15,6 +15,23 @@ const {comments,error,isLoading} = apiGetMyComments(counter)
 const userStore = useUserStore()
 const userRef = storeToRefs(userStore)
 const isLogin = ref(userRef.getIsLogin)
+const searchVal = ref('')
+const commentShow = ref([])
+
+let timer = null
+const delay = 400
+
+watch([comments,searchVal],() =>{
+
+    clearTimeout(timer)
+
+    timer = setTimeout(() =>{
+        commentShow.value = comments.value.filter(c => c.content.includes(searchVal.value) || c.item.title.includes(searchVal.value))
+        console.log(commentShow.value)
+    },delay)
+
+})
+
 
 const deleteComment = async (c) =>{
     const onOk = async () =>{
@@ -46,8 +63,13 @@ onActivated(() =>{
             :isLoading="isLoading"
             @refreshRun="refreshRun"
         />
+        <nut-searchbar
+            v-model="searchVal"
+            @clear="searchVal = ''"
+            placeholder="搜索"
+        />
         <a-list>
-            <a-list-item v-for="c in comments" :key="c.id">
+            <a-list-item v-for="c in commentShow" :key="c.id">
                 <a-list-item-meta
                     :title="c.item.title"
                     @click="router.push({name:'showComment',query:{id:c.item_id}})"

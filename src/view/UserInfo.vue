@@ -54,12 +54,12 @@
                     <nut-button type="info" size="small" @click="changePwd">确认</nut-button>
                 </template>
             </nut-input>
-            <nut-cell title="发表文章数" is-link @click="router.push({name:'MyArticle'})">
+            <nut-cell title="发表文章数" is-link @click="userStore.setActiveTab(1)" >
                 <template #desc>
                     <span v-if="userStore.getUser.items">{{userStore.getUser.items.length}}</span>
                 </template>
             </nut-cell>
-            <nut-cell title="发表评论数" is-link @click="router.push({name:'showComment',})">
+            <nut-cell title="发表评论数" is-link @click="userStore.setActiveTab(2)">
                 <template #desc>
                     <span v-if="userStore.getUser.comments">{{userStore.getUser.comments.length}}</span>
                 </template>

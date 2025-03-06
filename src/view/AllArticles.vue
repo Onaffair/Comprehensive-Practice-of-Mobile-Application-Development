@@ -1,6 +1,6 @@
 <script setup>
 import {computed, onActivated, reactive, ref, watch} from "vue";
-import {apiAddItemStar, apiGetAllItemsRefresh} from "../util/apiUtils.js";
+import {apiAddItemStar, apiGetAllItemsRefresh, apiGetStarByUserId, apiRemoveItemStar} from "../util/apiUtils.js";
 import MyCard from "../components/MyCard.vue";
 import useCounterStore from "../store/useCounterStore.js";
 import {storeToRefs} from "pinia";
@@ -51,6 +51,12 @@ watch(list,() =>{
 })
 const clickStar = async (id) =>{
     let data = await apiAddItemStar(id)
+    if (data){
+        Object.assign(allList.value.get(id),data)
+    }
+}
+const clickUnstar = async (id) =>{
+    let data = await apiRemoveItemStar(id)
     if (data){
         Object.assign(allList.value.get(id),data)
     }
@@ -145,6 +151,7 @@ watch([searchVal,DEFAULT_QUERY],() =>{
                             @onClickComment="gotoShowComment(item.id)"
                             @onClickItem="router.push({name:'showArticle',query:{id:item.id}})"
                             @onClickMoreActions="router.push({name:'showArticle',query:{id:item.id}})"
+                            @onCLickUnStar="clickUnstar(item.id)"
                         />
                     </nut-pull-refresh>
                 </nut-space>
@@ -162,6 +169,7 @@ watch([searchVal,DEFAULT_QUERY],() =>{
                         @onClickComment="(id) => gotoShowComment(id)"
                         @onClickItem="router.push({name:'showArticle',query:{id:item.id}})"
                         @onClickMoreActions="router.push({name:'showArticle',query:{id:item.id}})"
+                        @onCLickUnStar="clickUnstar(item.id)"
                     />
                 </nut-space>
             </nut-infinite-loading>

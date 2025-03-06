@@ -2,6 +2,7 @@ import {_axios} from "../util/index.js";
 import qs  from 'qs'
 import {alertFail, showSuccess} from "../util/showMessages.js";
 import useUserStore from "../store/UserStore.js";
+import {apiGetStarByUserId} from "../util/apiUtils.js";
 
 const userStore = useUserStore()
 const login = async (loginData) =>{
@@ -19,7 +20,8 @@ const login = async (loginData) =>{
                 userStore.setUserName(loginData.username)
                 userStore.setPassword(loginData.password)
 
-                await profile()
+                await profile()  //获取用户信息
+                await apiGetStarByUserId() //获取点赞信息
 
                 return res?.data
             }catch (e){

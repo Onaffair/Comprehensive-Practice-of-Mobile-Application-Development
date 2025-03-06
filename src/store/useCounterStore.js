@@ -42,7 +42,7 @@ const useCounterStore = defineStore('counterStore',{
         },
         incrementTimerCounter(){
             this.timerCommentCounter()
-            this.timerCommentCounter()
+            this.timerArticleCounter()
         },
         setInterval(interval = 1000){
             this.interval = interval

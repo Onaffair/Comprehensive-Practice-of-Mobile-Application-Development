@@ -4,7 +4,7 @@
             <component :is="currentComponent" />
         </keep-alive>
         <nut-tabbar
-           v-model="activeTab"
+           v-model="userStore.activeTab"
            @tab-switch="tabSwitch"
            unactive-color="#505050"
            bottom
@@ -30,15 +30,17 @@ import {h, onMounted, ref, shallowRef, watchEffect} from "vue";
 import {Comment, Find, Home, My} from "@nutui/icons-vue";
 import {loginOnLaunch} from "../api/index.js";
 import router from "../router/index.js";
+import useUserStore from "../store/UserStore.js";
 
+const userStore = useUserStore()
 const components = [
     AllArticles,
     MyArticles,
     MyComments,
     UserInfo
 ]
-const  activeTab = ref(0)
-const currentComponent = shallowRef(components[activeTab.value])
+
+const currentComponent = shallowRef(components[userStore.activeTab])
 
 const list = [
     {
@@ -69,12 +71,11 @@ onMounted(() =>{
     })
 })
 const tabSwitch = (_,index) =>{
-    console.log(index)
-    currentComponent.value = components[index]
+    userStore.setActiveTab(index)
 }
 
 watchEffect(() =>{
-    currentComponent.value = components[activeTab.value]
+    currentComponent.value = components[userStore.getActiveTab]
 })
 
 

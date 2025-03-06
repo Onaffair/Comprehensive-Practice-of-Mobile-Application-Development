@@ -61,13 +61,17 @@ const updateItemData = () =>{
         owner.name = itemData.value.owner.name
         owner.avatar = imageBaseUrl+itemData.value.owner.avatar
         isAuthor.value = (itemData.value.owner_id === userStore.getUserDetail.uuid)
-        imgContents.value = itemData.value.images.map(img => reactive(img))
-        console.log(formData)
+
+        imgContents.value = itemData.value.images.map(img => {
+            //后端返回的数据中，如果order存在异常，则手动设置下
+            // img.order = itemData.value.images.indexOf(img)
+            return reactive(img)
+        })
+        imgContents.value.sort((a, b) => a.order - b.order)
     }
 }
 
 watch(itemData,() =>{
-    console.log('watch itemData',itemData)
     updateItemData()
 },{
     immediate:true
