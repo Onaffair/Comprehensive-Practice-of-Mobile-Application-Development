@@ -31,6 +31,8 @@ const useUserStore = defineStore('userStore',{
         password:"",
         activeTab:0,
         star:[],
+        read:[],
+        follow:[]
     }),
     getters:{
         getUser:(state) => state.user,
@@ -40,6 +42,8 @@ const useUserStore = defineStore('userStore',{
         getUserDetail:(state) => state.userDetail,
         getActiveTab:(state) => state.activeTab,
         getStar:(state) => state.star,
+        getRead:(state) => state.read,
+        getFollow:(state) => state.follow,
     },
     actions:{
         setUser(user){
@@ -68,11 +72,19 @@ const useUserStore = defineStore('userStore',{
         setStar(star){
             this.star = star
         },
+        setRead(read){
+            this.read = read
+        },
+        setFollow(follow){
+            this.follow = follow
+        },
         quit(){
             this.setLoginState(false)
             this.setUser({})
             this.setUserDetail({})
             this.setToken("")
+            this.setStar([])
+            this.setRead([])
             localStorage.removeItem('userStore')
         }
     },

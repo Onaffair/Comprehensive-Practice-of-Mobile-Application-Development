@@ -97,6 +97,10 @@ onBeforeMount(() =>{
                 <span class="icon-hover" @click="onClickMore">
                     <IconMore/>
                 </span>
+                <div v-if="userStore.getIsLogin">
+                    <span v-if="userStore.getRead.find(item => item.article_id=== props.id)">已读</span>
+                    <span v-else>未读</span>
+                </div>
             </template>
             <template #cover>
                 <div class="cover">
@@ -108,14 +112,23 @@ onBeforeMount(() =>{
                     />
                 </div>
             </template>
-            <a-card-meta :title="props.title">
+            <a-card-meta >
+                <template #title>
+                    <div @click="onClickItem">
+                        {{props.title}}
+                    </div>
+                </template>
                 <template #description>
                     <div @click="router.push({name:'userArticle',query:{id:props.owner_id,name:props.owner.name}})">
                         {{props.owner.name}}
                     </div>
                 </template>
                 <template #avatar>
-                    <a-avatar :size="24" :style="{marginRight:'8px'}" @click="router.push({name:'userArticle',query:{id:props.owner_id,name:props.owner.name}})">
+                    <a-avatar
+                        :size="24"
+                        :style="{marginRight:'8px'}"
+                        @click="router.push({name:'userArticle',query:{id:props.owner_id,name:props.owner.name}})"
+                    >
                         <img
                             :src="avatarSrc" :alt="avatarAlter"
                         />

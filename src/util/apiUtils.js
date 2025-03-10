@@ -45,7 +45,6 @@ const apiGetAllItemsRefresh = (timeCounter, query = ref('skip=0&limit=100')) =>{
             _axios.get(url)
                 .then(res =>{
                     if (res?.data){
-                        console.log(res)
                         list.value = res.data
                     }
                     isLoading.value = false
@@ -339,6 +338,62 @@ const apiPostItemDetail = async (itemIdRef ,titleForm, imgContents) =>{
     return Promise.resolve(itemId)
 }
 
+const apiGetReadByUserId = async () =>{
+    try{
+        let res = await _axios.get('/items/allReadItem/')
+        userStore.setRead(res?.data)
+        return Promise.resolve(res?.data)
+    }catch (e){
+        alertFail(apiGetReadByUserId.name,e?.message)
+    }
+}
+const apiAddRead = async (itemId) =>{
+    try{
+        let res = await _axios.post('/items/addRead/'+itemId)
+        await apiGetReadByUserId()
+        return Promise.resolve(res?.data)
+    }catch (e){
+        alertFail(apiAddRead.name,e?.message)
+    }
+}
+const apiGetAllFollow = async () =>{
+    try{
+        let res = await  _axios.get('/user/follow/allFollow/')
+        userStore.setFollow(res?.data)
+        return Promise.resolve(res?.data)
+    }catch (e){
+        alertFail(apiGetAllFollow.name,e?.message)
+    }
+}
+
+const apiChangeFollow = async (params) =>{
+    try{
+        let res = await _axios.post('/user/follow/changeFollow/',params)
+        userStore.setFollow(res?.data)
+        return Promise.resolve(res?.data)
+    }catch (e){
+        alertFail(apiChangeFollow.name,e?.message)
+    }
+}
+const apiGetUnreadItemsFromFollow = async () =>{
+    try{
+        let res = await  _axios.get('/items/following/unread/')
+        return  res?.data
+    }catch (e){
+        alertFail(apiGetUnreadItemsFromFollow.name,e?.message)
+    }
+
+}
+const apiGetTopStarredItems =async () =>{
+    try{
+        let res = await  _axios.get('/items/top-starred/')
+        return  res?.data
+    }catch (e){
+        alertFail(apiGetTopStarredItems.name,e?.message)
+    }
+}
+
+
 export {
     apiDeleteImageByPath,
     apiGetAllItemsRefresh,
@@ -356,4 +411,10 @@ export {
     apiPostItemDetail,
     apiRemoveItemStar,
     apiGetStarByUserId,
+    apiGetReadByUserId,
+    apiAddRead,
+    apiGetAllFollow,
+    apiChangeFollow,
+    apiGetUnreadItemsFromFollow,
+    apiGetTopStarredItems,
 }

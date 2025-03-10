@@ -1,7 +1,7 @@
 
 
 
-const imageBaseUrl = 'http://10.239.148.20'
+const imageBaseUrl = 'http://169.254.238.124'
 const baseUrl = imageBaseUrl + '/'
 const imgUpLoadUrl = imageBaseUrl + '/uploadimage/'
 const defaultImageSrc = '/images/word.png'

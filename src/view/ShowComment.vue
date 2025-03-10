@@ -15,6 +15,7 @@ import {
     IconMessage,
     IconDelete
 } from "@arco-design/web-vue/es/icon/index.js";
+import ImageUpLoader from "../components/ImageUpLoader.vue";
 const props = defineProps({
     id: String,
 })
@@ -25,12 +26,12 @@ const counterRef = storeToRefs(counterStore)
 const userStore = useUserStore()
 const userRef = storeToRefs(userStore)
 const isLogin = ref(userRef.getIsLogin)
-const uuid = userStore.uuid
-
+const uuid = userStore.getUserDetail.uuid
 const commentData = reactive({
     content:'',
     hint:'',
-    order:0
+    order:0,
+    imgSrc:'',
 })
 const userAvatar = imageBaseUrl+userStore.getUserDetail.avatar
 const commentCount = ref(counterRef.commentCounter)
@@ -49,6 +50,7 @@ const commentShow = computed(() =>{
     let allComment = comments.value
     if (allComment !== null){
         let res = organizeComments(allComment)
+        console.log("整理后的评论",res)
         return res
     }
     return null
@@ -67,7 +69,7 @@ const setReplyHint = (item) =>{
     commentData.hint = '引用:' + item.content + '@' + item.owner.name
 }
 const addReply = async () =>{
-    console.log(commentData)
+    console.log("评论内容",commentData)
     await apiPostComment(props.id,commentData)
     refreshRun()
     commentData.hint = ''
@@ -86,7 +88,9 @@ const commitDeleteComment = async (item) =>{
     showDialog({title,content,onCancel,onOk})
 }
 
-
+const onImgSuccess = ({src}) =>{
+    commentData.imgSrc = src
+}
 function organizeComments(allComments) {
     // 辅助函数：从hint中提取被引用的内容
     const getQuotedContent = (hint) => {
@@ -134,6 +138,11 @@ function organizeComments(allComments) {
 
     return Array.from(resultMap.values());
 }
+const getAbsoluteImgSrc = (src) =>{
+    const res = imageBaseUrl + src
+    return  res
+}
+
 
 onMounted( async () =>{
     refreshRun()
@@ -144,85 +153,97 @@ onMounted( async () =>{
 
 <template>
     <div>
-        <MyHead :title="computedTitle" @click="changePopStatus"/>
-        <nut-space
-            v-if="showPop"
-            direction="vertical"
-            align="center"
-            fill
-        >
-            <MyCard v-bind="itemData"/>
-        </nut-space>
-    </div>
-    <div v-if="error">
-        <ErrorState
-            :error="error"
-            :isLoading="isLoading"
-            @refreshRun="refreshRun"
-        />
-    </div>
-    <div >
-        <nut-empty
-            v-if="isNoComment"
-            image="empty"
-            description="无评论信息"
-        />
-    </div>
-    <div class="main-body">
-<!--        一级评论-->
-        <a-comment
-            align="right"
-            v-for="item in commentShow"
-            :author="item.firstComment.owner.name"
-            :avatar="imageBaseUrl+item.firstComment.owner.avatar"
-            :datetime="formatDateTime(item.firstComment.create_time)"
-            :key="item.firstComment.item_id"
-        >
-            <template #actions>
-                <div>
+        <div >
+            <MyHead :title="computedTitle" @click="changePopStatus"/>
+            <nut-space
+                v-if="showPop"
+                direction="vertical"
+                align="center"
+                fill
+            >
+                <MyCard v-bind="itemData"/>
+            </nut-space>
+        </div>
+        <div v-if="error">
+            <ErrorState
+                :error="error"
+                :isLoading="isLoading"
+                @refreshRun="refreshRun"
+            />
+        </div>
+        <div >
+            <nut-empty
+                v-if="isNoComment"
+                image="empty"
+                description="无评论信息"
+            />
+        </div>
+        <div class="main-body">
+            <!--        一级评论-->
+            <a-comment
+                align="right"
+                v-for="item in commentShow"
+                :author="item.firstComment.owner.name"
+                :avatar="imageBaseUrl+item.firstComment.owner.avatar"
+                :datetime="formatDateTime(item.firstComment.create_time)"
+                :key="item.firstComment.item_id"
+            >
+                <template #actions>
+                    <div>
                      <span @click="setReplyHint(item.firstComment)">
                         <IconMessage />引用
                     </span>
-                    <span v-if="item.firstComment.onwer_id===uuid" @click="commitDeleteComment(item.firstComment)">
+                        <span v-if="item.firstComment.owner_id===uuid" @click="commitDeleteComment(item.firstComment)">
                         <IconDelete/>删除
                     </span>
-                </div>
-            </template>
-            <template #content>
-               <div v-if="item.firstComment.hint" style="color:grey">
-                   {{item.firstComment.hint}}
-               </div>
-               <div>
-                   {{item.firstComment.content}}
-               </div>
-           </template>
-<!--            二级评论-->
-            <a-comment
-                align="right"
-                v-for="subItem in item.secondComment"
-                :author="subItem.owner.name"
-                :avatar="imageBaseUrl+subItem.owner.avatar"
-                :datetime="formatDateTime(subItem.create_time)"
-                :key="subItem.item_id"
-            >
-                <template #actions>
-                        <span @click="setReplyHint(subItem)">
-                            <IconMessage />引用
-                        </span>
-                    <span v-if="subItem.onwer_id===uuid" @click="commitDeleteComment(subItem)">
-                            <IconDelete/>删除
-                        </span>
+                    </div>
                 </template>
                 <template #content>
-                    <div v-if="subItem.hint" style="color:grey">
-                        {{subItem.hint}}
+                    <div v-if="item.firstComment.hint" style="color:grey">
+                        {{item.firstComment.hint}}
                     </div>
                     <div>
-                        {{subItem.content}}
+                        {{item.firstComment.content}}
+                    </div>
+                    <div>
+                        <nut-image :src="getAbsoluteImgSrc(item.firstComment.imgSrc)" width="30%"/>
                     </div>
                 </template>
+                <!--            二级评论-->
+                <a-comment
+                    align="right"
+                    v-for="subItem in item.secondComment"
+                    :author="subItem.owner.name"
+                    :avatar="imageBaseUrl+subItem.owner.avatar"
+                    :datetime="formatDateTime(subItem.create_time)"
+                    :key="subItem.item_id"
+                >
+
+                    <template #actions>
+                    <span @click="setReplyHint(subItem)">
+                        <IconMessage />引用
+                    </span>
+
+                        <span v-if="subItem.owner_id === uuid" @click="commitDeleteComment(subItem)">
+                            <IconDelete/>删除
+                        </span>
+                    </template>
+                    <template #content>
+                        <div v-if="subItem.hint" style="color:grey">
+                            {{subItem.hint}}
+                        </div>
+                        <div>
+                            {{subItem.content}}
+                        </div>
+                        <div>
+                            <nut-image :src="getAbsoluteImgSrc(subItem.imgSrc)" width="30%"/>
+                        </div>
+                    </template>
+                </a-comment>
             </a-comment>
-        </a-comment>
+
+        </div>
+        <!--        输入评论-->
         <a-comment
             align="right"
             v-if="isLogin"
@@ -260,6 +281,12 @@ onMounted( async () =>{
                     placeholder="Here is your reply."
                     v-model="commentData.content"
                 />
+                <div>
+                    <ImageUpLoader
+                        :img-src="commentData.imgSrc"
+                        @onSuccess="res => onImgSuccess(res)"
+                    />
+                </div>
             </template>
         </a-comment>
         <nut-cell
@@ -291,6 +318,7 @@ onMounted( async () =>{
     justify-content: center;
     justify-items: center;
     width: 90%;
+    scrollbar-width: none;
     margin: 5% auto auto;
 }
 

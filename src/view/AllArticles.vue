@@ -1,16 +1,22 @@
 <script setup>
 import {computed, onActivated, reactive, ref, watch} from "vue";
-import {apiAddItemStar, apiGetAllItemsRefresh, apiGetStarByUserId, apiRemoveItemStar} from "../util/apiUtils.js";
+import {
+    apiAddItemStar,
+    apiGetAllItemsRefresh,
+    apiGetStarByUserId,
+    apiGetTopStarredItems,
+    apiRemoveItemStar
+} from "../util/apiUtils.js";
 import MyCard from "../components/MyCard.vue";
 import useCounterStore from "../store/useCounterStore.js";
 import {storeToRefs} from "pinia";
 import {useScrollPos} from "../util/strollUtils.js";
-import {all} from "axios";
 import router from "../router/index.js";
+import {imageBaseUrl} from "../store/basic-data.js";
+
 const counterStore = useCounterStore()
 const counterRefObj = storeToRefs(counterStore)
 const counterRef = ref(counterRefObj.articleCounter)
-
 
 const hasMore = ref(true)
 const currentPage = ref(0)
@@ -28,6 +34,7 @@ const DEFAULT_QUERY = computed(() =>{
 const q =  ref(DEFAULT_QUERY.value)
 
 const allList = ref(new Map())
+const topArticle = ref([])
 
 const {list,error,isLoading} = apiGetAllItemsRefresh(counterRef,q)
 const loadMore = () =>{
@@ -71,7 +78,9 @@ watch(counterRef,() =>{
     currentPage.value = 0
 })
 
-onActivated(() =>{
+onActivated(async () =>{
+    topArticle.value = await apiGetTopStarredItems()
+    console.log("topArticle",topArticle.value)
     refreshRun()
 })
 
@@ -93,9 +102,6 @@ watch([searchVal,DEFAULT_QUERY],() =>{
         q.value = DEFAULT_QUERY.value
     }
 })
-
-
-
 
 
 </script>
@@ -127,6 +133,30 @@ watch([searchVal,DEFAULT_QUERY],() =>{
             @clear="searchVal = ''"
             placeholder="搜索"
         />
+
+        <nut-swiper
+            :loop="false"
+            :init-page="2"
+            :auto-play="3000"
+            pagination-visible
+            pagination-color="#426543"
+            pagination-unselected-color="#808080"
+        >
+            <nut-swiper-item
+                v-for="(item, index) in topArticle"
+                :key="index"
+                style="height: 150px"
+            >
+                <img
+                    :src="imageBaseUrl+item.src"
+                    alt=""
+                    style="height: 100%; width: 100%"
+                    draggable="false"
+                    @click="router.push({name:'showArticle',query:{id:item.id}})"
+                >
+            </nut-swiper-item>
+        </nut-swiper>
+
         <div v-if="allList" class="center">
             <nut-infinite-loading
                 v-model="isLoading"
@@ -180,6 +210,7 @@ watch([searchVal,DEFAULT_QUERY],() =>{
 
 <style scoped>
 .center{
+    margin-top: 10px;
     display: block;
     justify-content: center;
 }

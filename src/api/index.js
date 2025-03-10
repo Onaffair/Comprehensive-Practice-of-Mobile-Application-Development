@@ -2,7 +2,7 @@ import {_axios} from "../util/index.js";
 import qs  from 'qs'
 import {alertFail, showSuccess} from "../util/showMessages.js";
 import useUserStore from "../store/UserStore.js";
-import {apiGetStarByUserId} from "../util/apiUtils.js";
+import {apiGetAllFollow, apiGetReadByUserId, apiGetStarByUserId} from "../util/apiUtils.js";
 
 const userStore = useUserStore()
 const login = async (loginData) =>{
@@ -22,7 +22,8 @@ const login = async (loginData) =>{
 
                 await profile()  //获取用户信息
                 await apiGetStarByUserId() //获取点赞信息
-
+                await apiGetReadByUserId()
+                await apiGetAllFollow()
                 return res?.data
             }catch (e){
                 userStore.setLoginState(false)
@@ -71,6 +72,7 @@ const logout =async () =>{
         userStore.setUserDetail({})
         userStore.setUser({})
         userStore.setToken("")
+        userStore.setStar([])
         return Promise.resolve(res.data ? res.data : res?.statusText)
     }catch (e){
         alertFail(logout.name,e?.message)
@@ -79,6 +81,7 @@ const logout =async () =>{
             userStore.setUserDetail({})
             userStore.setUser({})
             userStore.setToken("")
+            userStore.setStar([])
         }
     }
 }

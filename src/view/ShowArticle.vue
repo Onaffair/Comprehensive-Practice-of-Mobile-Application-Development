@@ -2,7 +2,7 @@
 import {useRouter} from "vue-router";
 import {onActivated, onBeforeMount, reactive, ref, watch} from "vue";
 import useUserStore from "../store/UserStore.js";
-import {apiGetItemById, apiPostItemDetail} from "../util/apiUtils.js";
+import {apiGetItemById, apiPostItemDetail, apiAddRead} from "../util/apiUtils.js";
 import {formatDateTime} from "../util/formatUtils.js";
 import {imageBaseUrl} from "../store/basic-data.js";
 import MyHead from "../components/MyHead.vue";
@@ -98,8 +98,11 @@ const onSubmitArticle = () =>{
     refreshItem()
     setToPreview()
 }
-onBeforeMount(() =>{
+onBeforeMount(async () =>{
     refreshItem()
+    if (userStore.getIsLogin){
+        await apiAddRead(props.id)
+    }
 })
 </script>
 
